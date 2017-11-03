@@ -17,8 +17,8 @@ misc options:
 ### examples
 
 ```bash
-python main.py -c default.conf  # train a cross-entropy baseline
-python main.py -c ptb_basis_tied.conf # basis embedding inited via tied embedding on ptb
+python main.py -c config/default.conf  # train a cross-entropy baseline
+python main.py -c config/ptb_basis_tied.conf # basis embedding inited via tied embedding on ptb
 ```
 During training, if a keyboard interrupt (Ctrl-C) is received,
 training is stopped and the current model is evaluted against the test dataset.
