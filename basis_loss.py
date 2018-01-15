@@ -36,9 +36,8 @@ class BasisLoss(nn.Module):
         self.num_clusters = num_clusters
         self.num_basis = num_basis
 
-        #TODO: construct coordinates rather than tied with input coordinates
         self.decoder = BasisLinear(
-            nhidden, ntokens, num_clusters, num_basis,
+            nhidden, ntokens, num_basis, num_clusters,
             preload_weight_path=preload_weight_path,
         )
         self.criterion = nn.CrossEntropyLoss(size_average=size_average)

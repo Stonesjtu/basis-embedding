@@ -3,10 +3,8 @@
 # Time: Wed 09 Aug 2017 10:46:25 AM CST
 
 import numpy as np
-from sklearn.cluster import KMeans
 
 import torch
-from libKMCUDA import kmeans_cuda
 
 def basis_cluster(weight, num_basis, num_clusters, cuda=False):
     """Divide the weight into `num_basis` basis and clustering
@@ -25,9 +23,11 @@ def basis_cluster(weight, num_basis, num_clusters, cuda=False):
     coordinates = []
     basis = []
     if not cuda:
-        clustor = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
+        from sklearn.cluster import KMeans
+        clustor = KMeans(init='k-means++', n_clusters=num_clusters, n_init=1)
     for partial_embedding in partial_embeddings:
         if cuda:
+            from libKMCUDA import kmeans_cuda
             centroid, coordinate = kmeans_cuda(partial_embedding.numpy(), num_clusters, seed=7)
             # some clusters may have zero elements, thus the centroids becomes [nan] in libKMCUDA
             centroid = np.nan_to_num(centroid)

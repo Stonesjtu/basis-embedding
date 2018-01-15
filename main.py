@@ -220,6 +220,7 @@ def train():
     criterion.train()
     total_loss = 0
     start_time = time.time()
+
     for batch, data_batch in enumerate(corpus.train):
         # Starting each batch, we detach the hidden state from how it was previously produced.
         # If we didn't, the model would try backpropagating all the way to
