@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from torch.nn import Parameter
-from torch.autograd import Variable
 
 from product_quantizer import ProductQuantizer as PQ
 
@@ -34,7 +33,7 @@ class BasisModule(nn.Module):
         init_weight = torch.zeros(num_samples, dimension).uniform_(-0.1, 0.1)
         self.original_matrix = Parameter(init_weight)
 
-        self.basis = False
+        self.basis = True
         if self.basis:
             self.pq.train_code(init_weight)
 

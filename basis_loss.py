@@ -1,8 +1,6 @@
 # the NCE module written for pytorch
-
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 
 from basis_linear_softmax import BasisLinear
 from utils import get_mask
