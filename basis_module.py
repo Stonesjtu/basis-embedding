@@ -29,11 +29,14 @@ class BasisModule(nn.Module):
         self.dimension = dimension
         self.num_sub = num_sub
         self.num_clusters = num_clusters
-        self.basis = True
+
         self.pq = PQ(dimension, num_sub, num_clusters)
         init_weight = torch.zeros(num_samples, dimension).uniform_(-0.1, 0.1)
         self.original_matrix = Parameter(init_weight)
-        self.pq.train_code(init_weight)
+
+        self.basis = False
+        if self.basis:
+            self.pq.train_code(init_weight)
 
 
     def forward(self, input):
@@ -47,7 +50,7 @@ class BasisModule(nn.Module):
     def disable_basis(self):
         """Disable the basis mode"""
         self.basis = False
-        self.original_matrix = Parameter(self.pq.get_centroid()) # all centroids
+        self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
 
     def basis_mode(self, basis):
         if basis:

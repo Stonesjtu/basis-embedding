@@ -42,11 +42,13 @@ class ProductQuantizer(nn.Module):
             None
         """
 
-        centroid, codebook = basis_cluster(data_matrix, self.num_sub, self.k)
+        centroid, codebook = basis_cluster(data_matrix.cpu(), self.num_sub, self.k)
         self.centroid = Parameter(centroid)
         self.register_buffer('codebook', Variable(codebook))
+        if data_matrix.is_cuda:
+            self.cuda()
 
-    def get_centroid(self, index):
+    def get_centroid(self, index=None):
         """Get the reproduction value for training data
 
         Args:

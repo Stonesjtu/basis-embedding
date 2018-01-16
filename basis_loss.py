@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 from basis_linear_softmax import BasisLinear
+from utils import get_mask
 
 class BasisLoss(nn.Module):
     """Cross Entropy loss for basis decomposition decoder
@@ -24,25 +25,25 @@ class BasisLoss(nn.Module):
 
     def __init__(self,
                  nhidden,
-                 num_clusters,
-                 num_basis,
                  ntokens,
+                 num_basis,
+                 num_clusters,
                  size_average=True,
                  preload_weight_path=None,
                  ):
         super(BasisLoss, self).__init__()
 
         self.nhidden = nhidden
-        self.num_clusters = num_clusters
         self.num_basis = num_basis
+        self.num_clusters = num_clusters
+        self.size_average = size_average
 
         self.decoder = BasisLinear(
             nhidden, ntokens, num_basis, num_clusters,
-            preload_weight_path=preload_weight_path,
         )
-        self.criterion = nn.CrossEntropyLoss(size_average=size_average)
+        self.criterion = nn.CrossEntropyLoss(reduce=False)
 
-    def forward(self, input, target):
+    def forward(self, input, target, length):
         """compute the loss with output and the desired target
 
         Parameters:
@@ -54,9 +55,16 @@ class BasisLoss(nn.Module):
             - target: :math:`(N)`
 
         Return:
-            the scalar BasisLoss Variable ready for backward
+            the scalar Variable ready for backward
         """
 
         decoded = self.decoder(input).contiguous()
-        loss = self.criterion(decoded,target)
-        return loss
+        mask = get_mask(length)
+        loss = self.criterion(
+            decoded.view(-1, decoded.size(2)), target.view(-1)
+        ).view(decoded.size(0), decoded.size(1))
+        loss = torch.masked_select(loss, mask)
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()

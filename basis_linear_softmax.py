@@ -35,7 +35,7 @@ class BasisLinear(BasisModule):
             inputs = input.view(-1, self.num_sub, self.features_per_basis) # N X Nb X in_ft/Nb
             inputs = inputs.transpose(0, 1).transpose(1, 2) # Nb X N X in_ft/Nb
             output = torch.bmm(self.pq.centroid, inputs)
-            output = self._decode(output)
+            output = self._decode(output).view(input.size(0), input.size(1), -1)
         else:
             output = F.linear(input, self.original_matrix, self.bias)
 
