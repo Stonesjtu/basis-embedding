@@ -33,9 +33,7 @@ class BasisModule(nn.Module):
         init_weight = torch.zeros(num_samples, dimension).uniform_(-0.1, 0.1)
         self.original_matrix = Parameter(init_weight)
 
-        self.basis = True
-        if self.basis:
-            self.pq.train_code(init_weight)
+        self.basis = False
 
 
     def forward(self, input):
@@ -43,13 +41,15 @@ class BasisModule(nn.Module):
 
     def enable_basis(self):
         """Enable the basis mode as approximation"""
-        self.basis = True
-        self.pq.train_code(self.original_matrix.data)
+        if not self.basis:
+            self.basis = True
+            self.pq.train_code(self.original_matrix.data)
 
     def disable_basis(self):
         """Disable the basis mode"""
-        self.basis = False
-        self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
+        if self.basis:
+            self.basis = False
+            self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
 
     def basis_mode(self, basis):
         if basis:
