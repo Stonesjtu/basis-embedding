@@ -44,7 +44,7 @@ class ProductQuantizer(nn.Module):
 
         centroid, codebook = basis_cluster(data_matrix.cpu(), self.num_sub, self.k)
         self.centroid = Parameter(centroid)
-        self.register_buffer('codebook', Variable(codebook))
+        self.register_buffer('codebook', codebook)
         if data_matrix.is_cuda:
             self.cuda()
 
@@ -52,13 +52,13 @@ class ProductQuantizer(nn.Module):
         """Get the reproduction value for training data
 
         Args:
-            index: (C) the index(es) to look-up
+            index: `Tensor` (C) the index(es) to look-up
         """
         if index is None:
             code = self.codebook
         else:
             code = self.codebook[index]
-        return self.decode(code)
+        return self.decode(Variable(code))
 
     def decode(self, code):
         """Decode the code into reproduction value

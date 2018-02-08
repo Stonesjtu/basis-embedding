@@ -26,7 +26,7 @@ class BasisEmbedding(BasisModule):
         size = input.size()
         input = input.contiguous().view(-1)
         if self.basis:
-            embeddings = self.pq.get_centroid(input)
+            embeddings = self.pq.get_centroid(input.data)
         else:
             embeddings = self.original_matrix[input]
         return embeddings.view(*size, -1)
