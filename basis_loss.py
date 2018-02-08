@@ -36,9 +36,12 @@ class BasisLoss(nn.Module):
         self.num_clusters = num_clusters
         self.size_average = size_average
 
-        self.decoder = BasisLinear(
-            nhidden, ntokens, num_basis, num_clusters,
-        )
+        if num_basis == 0:
+            self.decoder = nn.Linear(nhidden, ntokens)
+        else:
+            self.decoder = BasisLinear(
+                nhidden, ntokens, num_basis, num_clusters,
+            )
         self.criterion = nn.CrossEntropyLoss(reduce=False)
 
     def forward(self, input, target, length):
