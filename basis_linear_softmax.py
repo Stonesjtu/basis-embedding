@@ -1,6 +1,7 @@
 import torch
 from torch.nn import Parameter
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 from basis_module import BasisModule
 
@@ -30,12 +31,21 @@ class BasisLinear(BasisModule):
         self.features_per_basis = in_features // num_basis
         self.bias = Parameter(0.01 * torch.randn(out_features))
 
+    def enable_basis(self):
+        super(BasisLinear, self).enable_basis()
+        aux_codebook = []
+        for nb, cur_basis_coord in enumerate(self.pq.codebook.t()):
+            aux_codebook.append(cur_basis_coord + nb*self.num_clusters)
+        self.aux_codebook = Variable(torch.cat(aux_codebook).contiguous().cuda())
+
     def forward(self, input):
         if self.basis:
-            inputs = input.view(-1, self.num_sub, self.features_per_basis) # N X Nb X in_ft/Nb
-            inputs = inputs.transpose(0, 1).transpose(1, 2) # Nb X N X in_ft/Nb
-            output = torch.bmm(self.pq.centroid, inputs)
+            inputs = input.contiguous().view(-1, self.num_sub, self.features_per_basis) # N X Nb X in_ft/Nb
+            inputs = inputs.transpose(0, 1).transpose(1, 2) # Nb X in_ft/Nb X N
+            output = torch.bmm(self.pq.centroid, inputs) # Nb X Nc X N
+            # with torch.autograd.profiler.profile() as prof:
             output = self._decode(output).view(input.size(0), input.size(1), -1)
+            # print(prof)
         else:
             output = F.linear(input, self.original_matrix, self.bias)
 
@@ -43,13 +53,17 @@ class BasisLinear(BasisModule):
 
     def _decode(self, output):
         """Decode the likelihood of per basis and per clusters into per word"""
-        output = output.transpose(0, 1) # Nc X Nb X N
+        # output = output.transpose(0, 1) # Nc X Nb X N
+        output = output.view(-1, output.size(2))
         #TODO: optimize this time consuming part(90% of output layer)
-        coordinates = self.pq.codebook.unsqueeze(2).expand(
-            *self.pq.codebook.size(),
-            output.size(2),
+        # coordinates = self.pq.codebook.unsqueeze(2).expand(
+        #     *self.pq.codebook.size(),
+        #     output.size(2),
+        # )
+        # likelihoods = output.gather(0, Variable(coordinates))
+        likelihoods = output.index_select(0, self.aux_codebook).view(
+            self.num_samples, self.num_sub, output.size(-1)
         )
-        likelihoods = output.gather(0, coordinates)
         likelihoods = likelihoods.sum(dim=1).t() # N X V
         likelihoods = likelihoods + self.bias # auto broadcasting
         return likelihoods
