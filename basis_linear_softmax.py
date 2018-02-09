@@ -33,8 +33,9 @@ class BasisLinear(BasisModule):
 
     def enable_basis(self):
         super(BasisLinear, self).enable_basis()
+        codebook = self.pq.codebook
         aux_codebook = []
-        for nb, cur_basis_coord in enumerate(self.pq.codebook.t()):
+        for nb, cur_basis_coord in enumerate(codebook.t()):
             aux_codebook.append(cur_basis_coord + nb*self.num_clusters)
         self.aux_codebook = Variable(torch.cat(aux_codebook).contiguous().cuda())
 
@@ -54,6 +55,10 @@ class BasisLinear(BasisModule):
     def _decode(self, output):
         """Decode the likelihood of per basis and per clusters into per word"""
         # output = output.transpose(0, 1) # Nc X Nb X N
+        from index_accumulate import index_accumulate
+        likelihoods = index_accumulate(output, self.aux_codebook).t()
+        likelihoods = likelihoods + self.bias # auto broadcasting
+        return likelihoods
         output = output.view(-1, output.size(2))
         #TODO: optimize this time consuming part(90% of output layer)
         # coordinates = self.pq.codebook.unsqueeze(2).expand(
@@ -65,5 +70,6 @@ class BasisLinear(BasisModule):
             self.num_samples, self.num_sub, output.size(-1)
         )
         likelihoods = likelihoods.sum(dim=1).t() # N X V
+        likelihoods.index_add_(0, )
         likelihoods = likelihoods + self.bias # auto broadcasting
         return likelihoods
