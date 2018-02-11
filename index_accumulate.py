@@ -26,9 +26,10 @@ class IndexAccumulate(Function):
     @staticmethod
     def backward(ctx, grad_output):
         aux_codebook, = ctx.saved_variables
-        expanded_grad_output = grad_output.unsqueeze(0).expand(ctx.num_basis, ctx.vocab, ctx.seq_len).contiguous().view(-1, ctx.seq_len)
+        aux_codebook = aux_codebook.view(ctx.num_basis, ctx.vocab)
         grad_input = Variable().type_as(grad_output).resize_(ctx.num_basis*ctx.num_cluster, ctx.seq_len).zero_()
-        grad_input.index_add_(0, aux_codebook, expanded_grad_output)
+        for i in range(ctx.num_basis):
+            grad_input.index_add_(0, aux_codebook[i], grad_output)
         return grad_input.view(ctx.num_basis, ctx.num_cluster, ctx.seq_len), None
 
 
