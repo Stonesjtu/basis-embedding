@@ -13,7 +13,7 @@ class RNNModel(nn.Module):
                  criterion=None,
                  dropout=0.5,
                  tie_weights=False,
-                 basis=None,
+                 basis=0,
                  num_clusters=400,
                  ):
         super(RNNModel, self).__init__()
@@ -21,9 +21,12 @@ class RNNModel(nn.Module):
         self.nlayers = nlayers
 
         self.drop = nn.Dropout(dropout)
-        self.encoder = BasisEmbedding(
-            ntoken, ninp, basis, num_clusters,
-        )
+        if basis != 0:
+            self.encoder = BasisEmbedding(
+                ntoken, ninp, basis, num_clusters,
+            )
+        else:
+            self.encoder = nn.Embedding(ntoken, ninp)
 
         self.rnn = nn.LSTM(
             ninp, nhid, nlayers, dropout=dropout, batch_first=True)

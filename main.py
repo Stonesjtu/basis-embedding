@@ -112,7 +112,7 @@ def evaluate(model, data_source, cuda=args.cuda):
         data, target, length = process_data(data_batch, cuda=cuda, eval=True, sep_target=sep_target)
 
         loss = model(data, target, length)
-        cur_length = length.sum()
+        cur_length = int(length.sum())
         eval_loss += loss.data[0] * cur_length
         total_length += cur_length
 
@@ -151,7 +151,6 @@ if __name__ == '__main__':
         try:
             for i in range(4):
                 lr = 1
-                model.encoder.disable_basis()
                 for epoch in range(1, args.epochs // 4 + 1):
                     lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
                 # Loop over epochs.
@@ -159,7 +158,6 @@ if __name__ == '__main__':
                 model.encoder.enable_basis()
                 for epoch in range(1, args.epochs // 4 + 1):
                     lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
-                model.encoder.disable_basis()
         except KeyboardInterrupt:
             logger.warning('Exiting from training early')
 
