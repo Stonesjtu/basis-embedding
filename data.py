@@ -15,7 +15,7 @@ def zero_padding(sentences, lengths):
     padded_sentences = []
     for length, sentence in zip(lengths, sentences):
         padding_length = max_len - length
-        padding = torch.LongTensor(padding_length).zero_()
+        padding = torch.LongTensor(int(padding_length)).zero_()
         padded_sentence = torch.cat((sentence, padding), 0)
         padded_sentences.append(padded_sentence)
     padded_sentences = torch.stack(padded_sentences)
