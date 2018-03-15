@@ -146,18 +146,22 @@ def run_epoch(epoch, lr, best_val_ppl):
 if __name__ == '__main__':
     lr = args.lr
     best_val_ppl = None
+    # We pre-train the model with half #epochs
+    basis_begin = args.epochs // 2 + 1
     if args.train:
         # At any point you can hit Ctrl + C to break out of training early.
         try:
-            for i in range(4):
-                lr = 1
-                for epoch in range(1, args.epochs // 4 + 1):
-                    lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
-                # Loop over epochs.
-                lr = 1
-                model.encoder.enable_basis()
-                for epoch in range(1, args.epochs // 4 + 1):
-                    lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
+            lr = 1
+            for epoch in range(1, basis_begin):
+                lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
+            # Loop over epochs.
+            lr = 1
+            best_val_ppl = None
+            logger.warning('Starting basis mode')
+            model.encoder.enable_basis()
+            model.criterion.decoder.enable_basis()
+            for epoch in range(basis_begin, args.epochs + 1):
+                lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
         except KeyboardInterrupt:
             logger.warning('Exiting from training early')
 

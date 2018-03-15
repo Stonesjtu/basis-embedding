@@ -26,7 +26,7 @@ def basis_cluster(weight, num_basis, num_clusters, cuda=False):
     basis = []
     if not cuda:
         from sklearn.cluster import KMeans
-        clustor = KMeans(init='k-means++', n_clusters=num_clusters, n_init=1)
+        clustor = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
     for partial_embedding in partial_embeddings:
         if cuda:
             from libKMCUDA import kmeans_cuda
