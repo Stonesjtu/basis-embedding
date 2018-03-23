@@ -1,4 +1,6 @@
 import torch.nn as nn
+import torch
+from torch.autograd import Variable
 from basis_embedding import BasisEmbedding
 
 
@@ -32,10 +34,32 @@ class RNNModel(nn.Module):
             ninp, nhid, nlayers, dropout=dropout, batch_first=True)
         self.criterion = criterion
 
+        # block
+        self.cm_mask = torch.ones(nhid, nhid).cuda()
+        nblock = basis
+        block_size = nhid / nblock
+        for i in range(nblock):
+            n = int(i * block_size)
+            m = int((i+1) * block_size)
+            self.cm_mask[n:m, n:m].fill_(0)
+        self.cm_mask = Variable(self.cm_mask.cuda())
+        self.printed = False
+
+
 
     def forward(self, input, target, lengths=None):
         emb = self.drop(self.encoder(input))
         output, unused_hidden = self.rnn(emb)
         output = self.drop(output)
         loss = self.criterion(output, target, lengths)
+        if not self.encoder.basis:
+            if not self.printed:
+                print('haha')
+            self.printed = True
+            weight = self.encoder.original_matrix
+            mean = torch.mean(weight, 1, keepdim=True)
+            weight = weight - mean.expand_as(weight)
+            cm = torch.mm(weight.t(), weight)
+            cm_mask = cm * self.cm_mask
+            return loss + 0.0001 * cm_mask.norm(2)
         return loss
