@@ -123,7 +123,7 @@ def run_epoch(epoch, lr, best_val_ppl):
     epoch_start_time = time.time()
     train(model, corpus.train, epoch=epoch, lr=lr, weight_decay=args.weight_decay)
     val_ppl = evaluate(model, corpus.valid)
-    logger.info(
+    logger.warning(
         '| end of epoch {:3d} | time: {:5.2f}s |'
         'valid ppl {:8.2f}'.format(
             epoch,
