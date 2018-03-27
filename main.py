@@ -158,7 +158,7 @@ if __name__ == '__main__':
             best_val_ppl = None
             logger.warning('Starting basis mode')
             model.encoder.enable_basis()
-            model.criterion.decoder.enable_basis()
+            # model.criterion.decoder.enable_basis()
             for epoch in range(basis_begin, args.epochs + 1):
                 lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
         except KeyboardInterrupt:
