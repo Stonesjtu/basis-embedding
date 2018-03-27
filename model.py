@@ -48,18 +48,22 @@ class RNNModel(nn.Module):
 
 
     def forward(self, input, target, lengths=None):
-        emb = self.drop(self.encoder(input))
+        origin_emb = self.encoder(input)
+        emb = self.drop(origin_emb)
         output, unused_hidden = self.rnn(emb)
         output = self.drop(output)
         loss = self.criterion(output, target, lengths)
-        if not self.encoder.basis:
+        if not self.encoder.basis and self.training:
             if not self.printed:
                 print('haha')
             self.printed = True
+            # weight = origin_emb.view(-1, origin_emb.size(2))
             weight = self.encoder.original_matrix
             mean = torch.mean(weight, 1, keepdim=True)
             weight = weight - mean.expand_as(weight)
             cm = torch.mm(weight.t(), weight)
-            cm_mask = cm * self.cm_mask
+            var = cm.diag().unsqueeze(1)
+            var_mat = torch.mm(var, var.t())
+            cm_mask = cm * self.cm_mask / var_mat
             return loss + 0.0001 * cm_mask.norm(2)
         return loss
