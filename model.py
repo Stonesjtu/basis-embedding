@@ -62,8 +62,8 @@ class RNNModel(nn.Module):
             mean = torch.mean(weight, 1, keepdim=True)
             weight = weight - mean.expand_as(weight)
             cm = torch.mm(weight.t(), weight)
-            var = cm.diag().unsqueeze(1)
-            var_mat = torch.mm(var, var.t())
+            std = cm.diag().unsqueeze(1).sqrt()
+            var_mat = torch.mm(std, std.t())
             cm_mask = cm * self.cm_mask / var_mat
             return loss + 0.0001 * cm_mask.norm(2)
         return loss
