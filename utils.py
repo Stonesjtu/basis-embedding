@@ -82,7 +82,7 @@ def setup_parser():
                         help='gradient clipping')
     parser.add_argument('--epochs', type=int, default=40,
                         help='upper epoch limit')
-    parser.add_argument('--batch-size', type=int, default=20, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=48, metavar='N',
                         help='batch size')
     parser.add_argument('--dropout', type=float, default=0.2,
                         help='dropout applied to layers (0 = no dropout)')
@@ -104,6 +104,12 @@ def setup_parser():
                         help='number of clusters to use in each base for input matrix')
     parser.add_argument('--num-output-clusters', type=int, default=400,
                         help='number of clusters to use in each base for output matrix')
+    parser.add_argument('--pretrain', type=str, default=None,
+                        help='pretrained model location to initialize')
+    parser.add_argument('--blocked-weight', type=float, default=0,
+                        help='weight of blocked diagonal loss for pretrain, 0 to disable')
+    parser.add_argument('--blocked-output', action='store_true',
+                        help='Use blocked pretrain for output layer')
 
     return parser
 

@@ -38,7 +38,6 @@ corpus = data.Corpus(
     pin_memory=args.cuda,
 )
 
-eval_batch_size = 1
 ################################################################## Build the criterion and model, setup the NCE and index_module
 #################################################################
 
@@ -49,9 +48,10 @@ logger.info('Vocabulary size is {}'.format(ntoken))
 criterion = BasisLoss(args.nhid, ntoken, args.num_output_basis, args.num_output_clusters)
 model = RNNModel(
     ntoken, args.emsize, args.nhid, args.nlayers,
-    dropout=args.dropout,basis=args.num_input_basis,
+    dropout=args.dropout, basis=args.num_input_basis,
     num_clusters=args.num_input_clusters,
-    criterion=criterion,
+    criterion=criterion, blocked_weight=args.blocked_weight,
+    blocked_output=args.blocked_output,
 )
 sep_target=True
 
@@ -129,8 +129,8 @@ def run_epoch(epoch, lr, best_val_ppl):
             (time.time() - epoch_start_time),
             val_ppl)
     )
-    with open(args.save+'.epoch_{}'.format(epoch), 'wb') as f:
-        torch.save(model, f)
+    # with open(args.save+'.epoch_{}'.format(epoch), 'wb') as f:
+    #     torch.save(model, f)
     # Save the model if the validation loss is the best we've seen so far.
     if not best_val_ppl or val_ppl < best_val_ppl:
         with open(args.save, 'wb') as f:
@@ -150,15 +150,24 @@ if __name__ == '__main__':
     if args.train:
         # At any point you can hit Ctrl + C to break out of training early.
         try:
-            lr = 1
-            for epoch in range(1, basis_begin):
-                lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
-            # Loop over epochs.
-            lr = 1
+            # pretrain the embedding for later basis clustering
+            if args.pretrain:
+                model = torch.load(args.pretrain+'.pretrain')
+                model.encoder.pq.num_sub = args.num_input_basis
+                model.encoder.pq.k = args.num_input_clusters
+                if args.blocked_output:
+                    model.criterion.decoder.pq.num_sub = args.num_output_basis
+                    model.criterion.decoder.pq.k = args.num_output_clusters
+            else:
+                for epoch in range(1, basis_begin):
+                    lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
+
+            lr = args.lr
             best_val_ppl = None
             logger.warning('Starting basis mode')
             model.encoder.enable_basis()
-            # model.criterion.decoder.enable_basis()
+            if args.blocked_output:
+                model.criterion.decoder.enable_basis()
             for epoch in range(basis_begin, args.epochs + 1):
                 lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
         except KeyboardInterrupt:
