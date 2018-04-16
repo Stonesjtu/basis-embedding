@@ -22,7 +22,7 @@ class BasisModule(nn.Module):
         - Output: (B, N, embedding_dim)
     """
 
-    def __init__(self, num_samples, dimension, num_sub=2, num_clusters=400):
+    def __init__(self, num_samples, dimension, num_sub, num_clusters):
         super(BasisModule, self).__init__()
         self.num_samples = num_samples
         self.dimension = dimension
@@ -35,21 +35,28 @@ class BasisModule(nn.Module):
 
         self.basis = False
 
+    def set_pq(self, num_sub, num_clusters):
+        """Set the parameters of product quantizer
+
+        The parameters may be used by both pq and sub-classes, so we
+        have to update the attributes too.
+        """
+        self.num_sub = num_sub
+        self.num_clusters = num_clusters
+        self.pq = PQ(self.dimension, num_sub, num_clusters)
 
     def forward(self, input):
         raise NotImplementedError('The basis module is not forwardable')
 
     def enable_basis(self):
         """Enable the basis mode as approximation"""
-        if not self.basis:
-            self.basis = True
-            self.pq.train_code(self.original_matrix.data)
+        self.basis = True
+        self.pq.train_code(self.original_matrix.data)
 
     def disable_basis(self):
         """Disable the basis mode"""
-        if self.basis:
-            self.basis = False
-            self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
+        self.basis = False
+        self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
 
     def basis_mode(self, basis):
         if basis:

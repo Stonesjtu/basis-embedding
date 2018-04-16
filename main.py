@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import sys
 import time
 import math
@@ -152,22 +153,32 @@ if __name__ == '__main__':
         try:
             # pretrain the embedding for later basis clustering
             if args.pretrain:
-                model = torch.load(args.pretrain+'.pretrain')
-                model.encoder.pq.num_sub = args.num_input_basis
-                model.encoder.pq.k = args.num_input_clusters
-                if args.blocked_output:
-                    model.criterion.decoder.pq.num_sub = args.num_output_basis
-                    model.criterion.decoder.pq.k = args.num_output_clusters
-            else:
-                for epoch in range(1, basis_begin):
-                    lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
+                pretrain_file = args.pretrain + '.pretrain'
+                if os.path.exists(pretrain_file):
+                    # directly load the pretrain file if present
+                    model = torch.load(pretrain_file)
+                    model.encoder.set_pq(
+                        args.num_input_basis, args.num_input_clusters
+                    )
+                    if args.blocked_output:
+                        logger.warning('Output uses blocked loss')
+                        model.criterion.decoder.set_pq(
+                            args.num_output_basis, args.num_output_clusters
+                        )
+                else:
+                    for epoch in range(1, basis_begin):
+                        lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
+                    with open(pretrain_file, 'wb') as f:
+                        torch.save(model, f)
 
             lr = args.lr
             best_val_ppl = None
-            logger.warning('Starting basis mode')
+            logger.warning('Starting basis mode: input-{}-{}, output-{}-{}'.format(
+                args.num_input_basis, args.num_input_clusters,
+                args.num_output_basis, args.num_output_clusters,
+            ))
             model.encoder.enable_basis()
-            if args.blocked_output:
-                model.criterion.decoder.enable_basis()
+            model.criterion.decoder.enable_basis()
             for epoch in range(basis_begin, args.epochs + 1):
                 lr, best_val_ppl = run_epoch(epoch, lr, best_val_ppl)
         except KeyboardInterrupt:

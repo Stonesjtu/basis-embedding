@@ -17,7 +17,8 @@ class RNNModel(nn.Module):
         - basis: #input basis
         - num_clusters: #clusters per basis
         - blocked_weight: the weight of blocked loss during pretraining
-        - blocked_output: indicates if the output is pre-trained with blocked loss
+        - blocked_output: indicates if the output is pre-trained with blocked
+        loss
     """
 
     def __init__(self,
@@ -49,7 +50,8 @@ class RNNModel(nn.Module):
         self.criterion = criterion
 
         # block
-        self.blocked_output= blocked_output
+        self.blocked_output = blocked_output
+
         def build_block(dim, basis):
             cm_mask = torch.ones(dim, dim).cuda()
             nblock = basis
@@ -60,9 +62,9 @@ class RNNModel(nn.Module):
                 cm_mask[n:m, n:m].fill_(0)
             return cm_mask
 
+        self.weight = blocked_weight
         if blocked_weight != 0:
             self.cm_mask = Variable(build_block(nhid, basis).cuda())
-            self.weight = blocked_weight
 
     def blocked_loss(self, weight):
         mean = torch.mean(weight, 1, keepdim=True)
@@ -82,7 +84,6 @@ class RNNModel(nn.Module):
 
         # the blocked loss is used only at pre-trainging
         if not self.encoder.basis and self.training and self.weight != 0:
-            # weight = origin_emb.view(-1, origin_emb.size(2))
             weight = self.encoder.original_matrix
             loss += self.weight * self.blocked_loss(weight)
             if self.blocked_output:

@@ -27,8 +27,6 @@ class BasisLinear(BasisModule):
     def __init__(self, in_features, out_features, num_basis, num_clusters, use_bias=True, preload_weight_path=None):
         super(BasisLinear, self).__init__(out_features, in_features, num_basis, num_clusters)
 
-        # get integer in python3
-        self.features_per_basis = in_features // num_basis
         self.bias = Parameter(0.01 * torch.randn(out_features))
 
     def enable_basis(self):
@@ -41,9 +39,11 @@ class BasisLinear(BasisModule):
 
     def forward(self, input):
         if self.basis:
-            inputs = input.contiguous().view(-1, self.num_sub, self.features_per_basis) # N X Nb X in_ft/Nb
-            inputs = inputs.transpose(0, 1).transpose(1, 2) # Nb X in_ft/Nb X N
-            output = torch.bmm(self.pq.centroid, inputs) # Nb X Nc X N
+            # get integer in python3
+            features_per_basis = self.dimension // self.num_sub
+            inputs = input.contiguous().view(-1, self.num_sub, features_per_basis)  # N X Nb X in_ft/Nb
+            inputs = inputs.transpose(0, 1).transpose(1, 2)  # Nb X in_ft/Nb X N
+            output = torch.bmm(self.pq.centroid, inputs)  # Nb X Nc X N
             # with torch.autograd.profiler.profile() as prof:
             output = self._decode(output).view(input.size(0), input.size(1), -1)
             # print(prof)

@@ -96,9 +96,9 @@ def setup_parser():
                         help='path to save the final model')
     parser.add_argument('--train', action='store_true',
                         help='set train mode, otherwise only evaluation is performed')
-    parser.add_argument('--num-input-basis', type=int, default=0, # 0 will be converted to False
+    parser.add_argument('--num-input-basis', type=int, default=0,  # 0 will be converted to False
                         help='number of basis to decompose in input embedding matrix')
-    parser.add_argument('--num-output-basis', type=int, default=0, # 0 will be converted to False
+    parser.add_argument('--num-output-basis', type=int, default=0,  # 0 will be converted to False
                         help='number of basis to decompose in output embedding matrix')
     parser.add_argument('--num-input-clusters', type=int, default=400,
                         help='number of clusters to use in each base for input matrix')
