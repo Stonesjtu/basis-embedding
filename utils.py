@@ -39,8 +39,8 @@ def basis_cluster(weight, num_basis, num_clusters, cuda=False):
         basis.append(torch.from_numpy(centroid.astype('float')))
         coordinates.append(torch.from_numpy(coordinate.astype('int32')))
 
-    basis = torch.stack(basis).float() # Nb X Nc(clusters) X E/Nb
-    coordinates = torch.stack(coordinates).t().long() # V X Nb(number of basis)
+    basis = torch.stack(basis).float()  # Nb X Nc(clusters) X E/Nb
+    coordinates = torch.stack(coordinates).t().long()  # V X Nb(number of basis)
     return basis, coordinates
 
 def get_similarity_count(source, target):

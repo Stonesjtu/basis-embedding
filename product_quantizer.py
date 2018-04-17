@@ -22,11 +22,12 @@ class ProductQuantizer(nn.Module):
 
     """
 
-    def __init__(self, dimension, num_sub, k):
+    def __init__(self, dimension, num_sub, k, renorm=True):
         super(ProductQuantizer, self).__init__()
         self.dimension = dimension
         self.num_sub = num_sub
         self.k = k
+        self.renorm = renorm
         if not dimension % num_sub == 0:
             raise ValueError('Embedding size({}) should be '
                              'divisible by basis number({})'.format(dimension, num_sub))
@@ -42,7 +43,10 @@ class ProductQuantizer(nn.Module):
             None
         """
 
-        centroid, codebook = basis_cluster(data_matrix.cpu(), self.num_sub, self.k)
+        data = data_matrix.cpu()
+        if self.renorm:
+            data = data.renorm(dim=1, p=2, maxnorm=0.45)
+        centroid, codebook = basis_cluster(data, self.num_sub, self.k)
         self.centroid = Parameter(centroid)
         self.register_buffer('codebook', codebook)
         if data_matrix.is_cuda:
