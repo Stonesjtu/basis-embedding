@@ -107,7 +107,6 @@ def evaluate(model, data_source, cuda=args.cuda):
     eval_loss = 0
     total_length = 0
 
-    data_source.batch_size = eval_batch_size
     for data_batch in data_source:
         data, target, length = process_data(data_batch, cuda=cuda, eval=True, sep_target=sep_target)
 
