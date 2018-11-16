@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import Parameter
 
-from product_quantizer import ProductQuantizer as PQ
+from .product_quantizer import ProductQuantizer as PQ
 
 class BasisModule(nn.Module):
     """A wrapper class using PQ to reduce parameters

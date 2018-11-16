@@ -1,5 +1,5 @@
 import torch.nn as nn
-from basis_embedding import BasisEmbedding
+from basis import BasisEmbedding
 
 
 class RNNModel(nn.Module):

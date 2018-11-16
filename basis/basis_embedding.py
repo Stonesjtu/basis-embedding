@@ -1,4 +1,4 @@
-from basis_module import BasisModule
+from .basis_module import BasisModule
 
 class BasisEmbedding(BasisModule):
     """A class to use basis decomposition to reduce parameters

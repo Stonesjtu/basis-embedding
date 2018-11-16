@@ -2,7 +2,7 @@ import torch
 from torch.nn import Parameter
 import torch.nn.functional as F
 
-from basis_module import BasisModule
+from .basis_module import BasisModule
 
 class BasisLinear(BasisModule):
     """A module to partially decode every basis in embedding chunks

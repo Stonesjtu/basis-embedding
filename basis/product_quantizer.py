@@ -1,9 +1,9 @@
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.nn import Parameter
 
-from utils import basis_cluster
 
 class ProductQuantizer(nn.Module):
     """Product Quantizer for pytorch
@@ -18,8 +18,6 @@ class ProductQuantizer(nn.Module):
     Attributes:
         - codebook: (V, Nb) the coordinates of words under specific basis
         - centroid: (Nb, Nc, E/Nb)the cluster centroids of original embedding matrix
-
-
     """
 
     def __init__(self, dimension, num_sub, k, renorm=True):
@@ -89,3 +87,38 @@ class ProductQuantizer(nn.Module):
 
     def compute_code(self, point):
         pass
+
+def basis_cluster(weight, num_basis, num_clusters, cuda=False):
+    """Divide the weight into `num_basis` basis and clustering
+
+    Params:
+        - weight: weight matrix to do basis clustering
+        - num_basis: number of basis, also the dimension of coordinates
+        - num_cluster: number of clusters per basis
+
+    Return:
+        - basis: (Nb, Nc, E/Nb)the cluster centers for each basis.
+        - coordinates: (V, Nb) the belongings for basis of each token.
+    """
+    partial_embeddings = weight.chunk(num_basis, dim=1)
+
+    coordinates = []
+    basis = []
+    if not cuda:
+        from sklearn.cluster import KMeans
+        clustor = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
+    for partial_embedding in partial_embeddings:
+        if cuda:
+            from libKMCUDA import kmeans_cuda
+            centroid, coordinate = kmeans_cuda(partial_embedding.numpy(), num_clusters, seed=7)
+            # some clusters may have zero elements, thus the centroids becomes [nan] in libKMCUDA
+            centroid = np.nan_to_num(centroid)
+        else:
+            clustor.fit(partial_embedding.numpy())
+            centroid, coordinate = clustor.cluster_centers_, clustor.labels_
+        basis.append(torch.from_numpy(centroid.astype('float')))
+        coordinates.append(torch.from_numpy(coordinate.astype('int32')))
+
+    basis = torch.stack(basis).float()  # Nb X Nc(clusters) X E/Nb
+    coordinates = torch.stack(coordinates).t().long()  # V X Nb(number of basis)
+    return basis, coordinates

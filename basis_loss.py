@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from basis_linear_softmax import BasisLinear
+from basis import BasisLinear
 from utils import get_mask
 
 class BasisLoss(nn.Module):
