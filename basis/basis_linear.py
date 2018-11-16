@@ -31,6 +31,7 @@ class BasisLinear(BasisModule):
         self.bias = Parameter(0.01 * torch.randn(out_features))
 
     def forward(self, input):
+        input = input.contiguous()
         if self.basis:
             inputs = input.view(-1, self.num_sub, self.features_per_basis) # N X Nb X in_ft/Nb
             inputs = inputs.transpose(0, 1).transpose(1, 2) # Nb X N X in_ft/Nb

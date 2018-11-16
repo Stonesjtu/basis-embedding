@@ -81,10 +81,10 @@ def train(model, data_source, epoch, lr=1.0, weight_decay=1e-5, momentum=0.9):
         loss.backward()
 
         # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
-        torch.nn.utils.clip_grad_norm(model.parameters(), args.clip)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
         optimizer.step()
 
-        total_loss += loss.data[0]
+        total_loss += loss.data.item()
 
         if num_batch % args.log_interval == 0 and num_batch > 0:
             cur_loss = total_loss / args.log_interval
@@ -107,13 +107,14 @@ def evaluate(model, data_source, cuda=args.cuda):
     eval_loss = 0
     total_length = 0
 
-    for data_batch in data_source:
-        data, target, length = process_data(data_batch, cuda=cuda, eval=True, sep_target=sep_target)
+    with torch.no_grad():
+        for data_batch in data_source:
+            data, target, length = process_data(data_batch, cuda=cuda, sep_target=sep_target)
 
-        loss = model(data, target, length)
-        cur_length = int(length.sum())
-        eval_loss += loss.data[0] * cur_length
-        total_length += cur_length
+            loss = model(data, target, length)
+            cur_length = int(length.sum().item())
+            eval_loss += loss.data[0] * cur_length
+            total_length += cur_length
 
     return math.exp(eval_loss/total_length)
 

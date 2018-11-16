@@ -42,7 +42,7 @@ class BasisLoss(nn.Module):
             self.decoder = BasisLinear(
                 nhidden, ntokens, num_basis, num_clusters,
             )
-        self.criterion = nn.CrossEntropyLoss(reduce=False)
+        self.criterion = nn.CrossEntropyLoss(reduction='none')
 
     def forward(self, input, target, length):
         """compute the loss with output and the desired target
