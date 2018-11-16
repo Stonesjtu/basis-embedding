@@ -1,5 +1,7 @@
 ## basis embedding
+
 > code for Structured Word Embedding for Low Memory Neural Network Language Model
+
 The code repo for basis embedding to reduce model size and memory consumption
 This repo is built based on the pytorch/examples repo on github
 
