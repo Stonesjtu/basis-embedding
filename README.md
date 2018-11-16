@@ -1,3 +1,5 @@
+## basis embedding
+> code for Structured Word Embedding for Low Memory Neural Network Language Model
 The code repo for basis embedding to reduce model size and memory consumption
 This repo is built based on the pytorch/examples repo on github
 
@@ -54,8 +56,7 @@ optional arguments:
 and feeds the data to model
 - model.py: define the input embedding and LSTM layer
 - basis_loss.py: It contains a basis linear module, taking inputs from LSTM hidden state and outputing loss value.
-- basis_linear_softmax.py:  the definition of basis linear.
-- crossEntropy.py: a wrapper of Pytorch's crossEntropy loss
+- basis/: core part of the basis embedding module
 - utils.py: do product quantization for pre-trained embedding
 - data.py: data pre-processing
 - .th/.th.decoder: the pre-trained embedding matrix
