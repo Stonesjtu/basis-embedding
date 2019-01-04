@@ -77,11 +77,11 @@ class ProductQuantizer(nn.Module):
         """
         sub_centroids = []
         for cur_sub in range(self.num_sub):
-            cur_index = code[:, cur_sub]
+            cur_index = code[..., cur_sub]
             sub_centroid = self.centroid[cur_sub][cur_index] # N X E/Nb
             sub_centroids.append(sub_centroid)
 
-        centroid = torch.cat(sub_centroids, dim=1)
+        centroid = torch.cat(sub_centroids, dim=-1)
         return centroid
 
 
