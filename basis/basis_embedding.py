@@ -1,5 +1,6 @@
 from .basis_module import BasisModule
 
+
 class BasisEmbedding(BasisModule):
     """A class to use basis decomposition to reduce parameters
 
@@ -18,7 +19,9 @@ class BasisEmbedding(BasisModule):
     """
 
     def __init__(self, ntoken, embedding_dim, num_basis=2, num_clusters=400):
-        super(BasisEmbedding, self).__init__(ntoken, embedding_dim, num_basis, num_clusters)
+        super(BasisEmbedding, self).__init__(
+                ntoken, embedding_dim, num_basis, num_clusters
+        )
 
     def forward(self, input):
         # TODO: add padding indice
@@ -29,3 +32,10 @@ class BasisEmbedding(BasisModule):
         else:
             embeddings = self.weight[input]
         return embeddings.view(*size, -1)
+
+    def get_embedding(self):
+        """Get the embeddings for all words"""
+        if self.basis:
+            return self.pq.get_centroid()
+        else:
+            return self.weight
