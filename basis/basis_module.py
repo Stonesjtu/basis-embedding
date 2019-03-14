@@ -11,8 +11,8 @@ class BasisModule(nn.Module):
     for parameter reduction.
 
     Arguments:
-        - num_samples: number of samples (feature vectors)
-        - dimension: feature dimension size
+        - num_embeddings: number of embeddings (feature vectors)
+        - embedding_dim: feature dimension size (usually embedding size)
         - num_sub: number of sub-quantizer
         - num_clusters: the number of clusters in each sub-quantizer
         - basis: basis mode switch
@@ -22,19 +22,18 @@ class BasisModule(nn.Module):
         - Output: (B, N, embedding_dim)
     """
 
-    def __init__(self, num_samples, dimension, num_sub=2, num_clusters=400):
+    def __init__(self, num_embeddings, embedding_dim, num_sub=2, num_clusters=400):
         super(BasisModule, self).__init__()
-        self.num_samples = num_samples
-        self.dimension = dimension
+        self.num_embeddings = num_embeddings
+        self.embedding_dim = embedding_dim
         self.num_sub = num_sub
         self.num_clusters = num_clusters
 
-        self.pq = PQ(dimension, num_sub, num_clusters)
-        init_weight = torch.zeros(num_samples, dimension).uniform_(-0.1, 0.1)
-        self.original_matrix = Parameter(init_weight)
+        self.pq = PQ(embedding_dim, num_sub, num_clusters)
+        init_weight = torch.zeros(num_embeddings, embedding_dim).uniform_(-0.1, 0.1)
+        self.weight = Parameter(init_weight)
 
         self.basis = False
-
 
     def forward(self, input):
         raise NotImplementedError('The basis module is not forwardable')
@@ -43,13 +42,13 @@ class BasisModule(nn.Module):
         """Enable the basis mode as approximation"""
         if not self.basis:
             self.basis = True
-            self.pq.train_code(self.original_matrix.data)
+            self.pq.train_code(self.weight.data)
 
     def disable_basis(self):
         """Disable the basis mode"""
         if self.basis:
             self.basis = False
-            self.original_matrix = Parameter(self.pq.get_centroid().data) # all centroids
+            self.weight = Parameter(self.pq.get_centroid().data) # all centroids
 
     def basis_mode(self, basis):
         if basis:

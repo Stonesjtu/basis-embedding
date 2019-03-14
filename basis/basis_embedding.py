@@ -17,9 +17,8 @@ class BasisEmbedding(BasisModule):
         - Output: (B, N, embedding_dim)
     """
 
-    def __init__(self, ntoken, emsize, num_basis=2, num_clusters=400):
-        super(BasisEmbedding, self).__init__(ntoken, emsize, num_basis, num_clusters)
-
+    def __init__(self, ntoken, embedding_dim, num_basis=2, num_clusters=400):
+        super(BasisEmbedding, self).__init__(ntoken, embedding_dim, num_basis, num_clusters)
 
     def forward(self, input):
         # TODO: add padding indice
@@ -28,5 +27,5 @@ class BasisEmbedding(BasisModule):
         if self.basis:
             embeddings = self.pq.get_centroid(input.data)
         else:
-            embeddings = self.original_matrix[input]
+            embeddings = self.weight[input]
         return embeddings.view(*size, -1)
