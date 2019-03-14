@@ -4,6 +4,7 @@ from torch.nn import Parameter
 
 from .product_quantizer import ProductQuantizer as PQ
 
+
 class BasisModule(nn.Module):
     """A wrapper class using PQ to reduce parameters
 
@@ -64,7 +65,7 @@ class BasisModule(nn.Module):
         """Disable the basis mode"""
         if self.basis:
             self.basis = False
-            self.weight = Parameter(self.pq.get_centroid().data) # all centroids
+            self.weight = Parameter(self.pq.get_centroid().data)  # all centroids
 
     def basis_mode(self, basis):
         if basis:
