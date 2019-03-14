@@ -44,6 +44,22 @@ class BasisModule(nn.Module):
             self.basis = True
             self.pq.train_code(self.weight.data)
 
+    def enable_random_basis(self):
+        """Enable basis mode with codebook and centroids randomly initialized"""
+        if not self.basis:
+            factory = self.weight.data.new
+            self.basis = True
+            self.pq.centroid = Parameter(
+                    factory(
+                        self.num_sub, self.num_clusters, self.embedding_dim // self.num_sub
+                        ).uniform_(-0.1, 0.1)
+                    )
+            codebook = torch.randint_like(
+                    factory(self.num_embeddings, self.num_sub).long(),
+                    self.num_clusters,
+                    )
+            self.pq.register_buffer('codebook', codebook)
+
     def disable_basis(self):
         """Disable the basis mode"""
         if self.basis:
