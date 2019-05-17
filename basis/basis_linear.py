@@ -43,7 +43,7 @@ class BasisLinear(BasisModule):
             output = torch.bmm(self.pq.centroid, inputs)
             output = self._decode(output).view(input.size(0), input.size(1), -1)
         else:
-            output = F.linear(input, self.original_matrix, self.bias)
+            output = F.linear(input, self.weight, self.bias)
 
         return output
 
