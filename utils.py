@@ -1,7 +1,7 @@
 """Some utilities functions to help abstract the codes"""
 import logging
 
-from torch.autograd import Variable
+import torch
 
 import configargparse
 
@@ -94,14 +94,18 @@ def setup_logger(logger_name):
 
 
 # Get the mask matrix of a batched input
-def get_mask(lengths, cut_tail=0):
+def get_mask(lengths, cut_tail=0, max_len=None):
+    """
+    Creates a boolean mask from sequence lengths.
+    """
     assert lengths.min() >= cut_tail
-    max_len = lengths.max()
-    size = len(lengths)
-    mask = lengths.new().byte().resize_(size, max_len).zero_()
-    for i in range(size):
-        mask[i][:lengths[i]-cut_tail].fill_(1)
-    return Variable(mask)
+    batch_size = lengths.numel()
+    max_len = max_len or lengths.max()
+    mask = (torch.arange(0, max_len)
+            .type_as(lengths)
+            .repeat(batch_size, 1)
+            .lt(lengths.unsqueeze(1)))
+    return mask
 
 
 def process_data(data_batch, cuda=False, sep_target=True):
@@ -137,8 +141,8 @@ def process_data(data_batch, cuda=False, sep_target=True):
         data = batch_sentence
         target = batch_sentence
 
-    data = Variable(data.contiguous())
-    target = Variable(target.contiguous(), requires_grad=False)
+    data = data.contiguous()
+    target = target.contiguous()
 
     return data, target, effective_length
 

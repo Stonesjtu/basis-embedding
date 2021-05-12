@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 from torch.nn import Parameter
 
 
@@ -60,7 +59,7 @@ class ProductQuantizer(nn.Module):
             code = self.codebook
         else:
             code = self.codebook[index]
-        return self.decode(Variable(code))
+        return self.decode(code)
 
     def decode(self, code):
         """Decode the code into reproduction value
