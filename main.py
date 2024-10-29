@@ -116,6 +116,20 @@ def evaluate(model, data_source, cuda=args.cuda):
             eval_loss += loss.data.item() * cur_length
             total_length += cur_length
 
+        start = time.time()
+        # for data_batch in data_source:
+        #     for _ in range(10):
+        #         data, target, length = process_data(data_batch, cuda=cuda, sep_target=sep_target)
+
+        #         loss = model(data, target, length)
+        #         cur_length = length.sum().item()
+        #         eval_loss += loss.data.item() * cur_length
+        #         total_length += cur_length
+        end = time.time()
+        elapsed = end - start
+        print('Time elapsed: ', elapsed)
+
+
     return math.exp(eval_loss/total_length)
 
 def run_epoch(epoch, lr, best_val_ppl):
@@ -148,7 +162,7 @@ if __name__ == '__main__':
     best_val_ppl = None
     # We pre-train the model with half #epochs
     basis_begin = args.epochs // 2 + 1
-    if args.train:
+    if args.train and False:
         # At any point you can hit Ctrl + C to break out of training early.
         try:
             lr = 1
